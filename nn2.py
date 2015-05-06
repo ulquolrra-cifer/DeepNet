@@ -5,7 +5,7 @@ from active_function import *
 
 
 class NN(object): 
-	def __init__(self,architecture,activation_function='sigm',learningRate = 2,momentum = 0.5,weightPenaltyL2 = 0,sparsityparameter = 0.1,beta=0.5,inputzeroMaskedFraction=0,output = 'sigm',jacobi_penalty = 0,scaling_learningRate = 0.99):
+	def __init__(self,architecture,activation_function='sigm',learningRate = 2,momentum = 0.5,weightPenaltyL2 = 0,sparsityparameter = 0.1,beta=0.5,inputzeroMaskedFraction=0,output = 'sigm',jacobi_penalty = 0.1,scaling_learningRate = 0.99):
 		self.size=architecture
 		self.n=len(self.size)
 		self.activation_function = activation_function
@@ -104,12 +104,20 @@ class NN(object):
 				self.db[str(i)] = d[str(i+1)].mean(0)
 #			else:
 #				self.dW[str(i)] = np.dot(d[str(i+1)][:,1:].T,self.a[str(i)])/np.shape(d[str(i+1)])[0]
-	def nnapplygrads(self):
+	def nnapplygrads(self,x):
 		for i in range(self.n-1,0,-1):
 			dw = self.dW[str(i)]
 			db = self.db[str(i)]
 			if self.jacobi_penalty > 0:
-				for i in range(2,self.n):
+				if i==1:
+					a = (self.a[str(i+1)]*(1-self.a[str(i+1)]))**2
+					d = ((1-2*self.a[str(i+1)])*a*(self.W[str(i)]**2).sum(0)[None,:])
+					b = np.dot(x.T/x.shape[0],d)
+					c = a.mean(0)*self.W[str(i)]
+					dw_jacobi = b+c
+					db_jacobi = d.mean(0)
+					dw = dw + self.jacobi_penalty * dw_jacobi
+					db = db + self.jacobi_penalty * db	
 					
 			dw = self.learningRate*dw
 			db = self.learningRate*db
@@ -134,7 +142,7 @@ class NN(object):
 		
 				batch_x = x[kk[(l)*batchsize : ((l+1) * batchsize)],:]
 				if self.inputzeroMaskedFraction > 0:
-					batch_x[np.random.uniform(0,1,(np.shape(batch_x))<self.inputzeroMaskedFraction] = 0 
+					batch_x[np.random.uniform(0,1,(np.shape(batch_x)))<self.inputzeroMaskedFraction] = 0 
 				batch_y = y[kk[(l)*batchsize : ((l+1) * batchsize)],:]
 				self.nnff(batch_x,batch_y)
 				self.nnbp()
