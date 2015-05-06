@@ -1,10 +1,11 @@
+#use w and b to training the network 
 import numpy as np
 from active_function import *
 
 
 
 class NN(object): 
-	def __init__(self,architecture,activation_function='sigm',learningRate = 2,momentum = 0.5,weightPenaltyL2 = 0,sparsityparameter = 0,beta=0,inputzeroMaskedFraction=0,output = 'sigm',jacobi_penalty = 0,scaling_learningRate = 0.99):
+	def __init__(self,architecture,activation_function='sigm',learningRate = 2,momentum = 0.5,weightPenaltyL2 = 0,sparsityparameter = 0.1,beta=0.5,inputzeroMaskedFraction=0,output = 'sigm',jacobi_penalty = 0,scaling_learningRate = 0.99):
 		self.size=architecture
 		self.n=len(self.size)
 		self.activation_function = activation_function
@@ -40,11 +41,7 @@ class NN(object):
 		n = self.n
 		row,col = np.shape(x)
 		self.a['1'] = x.copy()
-#		x_a = {}
-#		x_a['1'] = np.zeros((row,col+1))
-#		x_a['1'][:,0] = np.ones(row)
-#		x_a['1'][:,1:] = x.copy()
-#		self.a['1'] = x_a['1']
+		self.P['1'] = np.sum(self.a['1'],0)
 		for i in range(2,n):
 			
 			if self.activation_function == 'sigm':
@@ -57,8 +54,8 @@ class NN(object):
 #			self.a[str(i)] = np.zeros((row_a,col_a+1))
 #			self.a[str(i)][:,0] = np.ones(row_a)
 #			self.a[str(i)][:,1:] = x_a[str(i)]
-#			if self.sparsityparameter > 0:
-#				self.P[str(i)] = np.sum(self.a[str(i)],2)
+			if self.sparsityparameter > 0:
+				self.P[str(i)] = np.sum(self.a[str(i)],0)
 		if self.output == 'sigm':
 			self.a[str(n)] = sigm(np.dot(self.a[str(n-1)],self.W[str(n-1)])+self.b[str(n-1)].mean(0))
 		elif self.output == 'linear':
@@ -87,13 +84,15 @@ class NN(object):
 			elif self.activation_function == 'tanh_opt':
 				d_act = 1.7159*2.0/3.0*(1-1/1.7159)**2*self.a[str(i)]**2
 			
-#			if self.sparsityparameter == 0:
+			if self.sparsityparameter == 0:
 #
 #				if i+1 == n:
-			d[str(i)] = np.dot(d[str(i+1)],self.W[str(i)].T)*d_act
+				d[str(i)] = np.dot(d[str(i+1)],self.W[str(i)].T)*d_act
 #				else:
 #					d[str(i)] = np.dot(d[str(i+1)][:,1:],self.W[str(i)])*d_act
-#			else:
+			else:
+				term = -(self.sparsityparameter / self.P[str(i)]) + (1-self.sparsityparameter) / (1.0 - self.P[str(i)])
+				d[str(i)] = (np.dot(d[str(i+1)],self.W[str(i)].T)+self.beta*term)*d_act
 #				term = -(self.sparsityparameter / self.P[str(i)]) + (1-self.sparsityparameter) / (1 - self.P[str(i)])
 #				if i+1 == n:
 #					d[str(i)] = (np.dot(d[str(i+1)],self.W[str(i)])+self.beta*term)*d_act
@@ -109,6 +108,9 @@ class NN(object):
 		for i in range(self.n-1,0,-1):
 			dw = self.dW[str(i)]
 			db = self.db[str(i)]
+			if self.jacobi_penalty > 0:
+				for i in range(2,self.n):
+					
 			dw = self.learningRate*dw
 			db = self.learningRate*db
 #			if self.jacobi_penalty > 0:
@@ -132,7 +134,7 @@ class NN(object):
 		
 				batch_x = x[kk[(l)*batchsize : ((l+1) * batchsize)],:]
 				if self.inputzeroMaskedFraction > 0:
-					batch_x[np.random.uniform(0,1,(batchsize,np.shape(x)[1]))<self.inputzeroMaskedFraction] = 0 
+					batch_x[np.random.uniform(0,1,(np.shape(batch_x))<self.inputzeroMaskedFraction] = 0 
 				batch_y = y[kk[(l)*batchsize : ((l+1) * batchsize)],:]
 				self.nnff(batch_x,batch_y)
 				self.nnbp()

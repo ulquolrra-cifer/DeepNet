@@ -1,28 +1,30 @@
+#use w to training network
 import numpy as np
 from active_function import *
 
 
 
 class NN(object): 
-	def __init__(self,architecture):
+	def __init__(self,architecture,activation_function='sigm',learningRate = 2,momentum = 0.5,weightPenaltyL2 = 0,sparsityparameter = 0,beta=0,sparsityparameter = 0,inputzeroMaskedFraction=0,output = 'sigm',jacobi_penalty = 0,scaling_learningRate = 0.99):
 		self.size=architecture
 		self.n=len(self.size)
-		self.activation_function = 'sigm'
-		self.learningRata = 2
-		self.momentum = 0.5
-		self.weightPenaltyL2 = 0
-		self.sparsityparameter = 0
-		self.beta = 0      #weigth of the sparsity penalty term
-		self.inputzeroMaskedFraction = 0
-		self.droputFraction = 0
+		self.activation_function = activation_function
+		self.learningRate = learningRate
+		self.momentum = momentum
+		self.weightPenaltyL2 = weightPenaltyL2
+		self.sparsityparameter = sparsityparameter
+		self.beta = beta      #weigth of the sparsity penalty term
+		self.inputzeroMaskedFraction = inputzeroMaskedFraction
+#		self.droputFraction = 0
 		self.testing = 0
-		self.output = 'sigm'
+		self.output = output
 		self.W = {}
 		self.P = {}
 		self.a = {}
 		self.dW = {}
 		self.vW = {}
-		self.scaling_learningRate=0.99
+		self.jacobi_penalty = jacobi_penalty
+		self.scaling_learningRate = scaling_learningRat
 #		self.e
 #		self.L
 		numpy_rng = np.random.RandomState(1234)
@@ -80,7 +82,7 @@ class NN(object):
 				d_act = self.a[str(i)]*(1-self.a[str(i)])
 			elif self.activation_function == 'tanh_opt':
 				d_act = 1.7159*2.0/3.0*(1-1/1.7159)**2*self.a[str(i)]**2
-			term = -(self.sparsityparameter / self.P[str(i)]) + (1-self.sparsityparameter) / (1 - self.P[str(i)])
+			
 			if self.sparsityparameter == 0:
 
 				if i+1 == n:
@@ -88,6 +90,7 @@ class NN(object):
 				else:
 					d[str(i)] = np.dot(d[str(i+1)][:,1:],self.W[str(i)])*d_act
 			else:
+				term = -(self.sparsityparameter / self.P[str(i)]) + (1-self.sparsityparameter) / (1 - self.P[str(i)])
 				if i+1 == n:
 					d[str(i)] = (np.dot(d[str(i+1)],self.W[str(i)])+self.beta*term)*d_act
 				else:
@@ -100,7 +103,9 @@ class NN(object):
 	def nnapplygrads(self):
 		for i in range(self.n-1,0,-1):
 			dw = self.dW[str(i)]
-			dw = self.learningRata*dw
+			dw = self.learningRate*dw
+			if self.jacobi_penalty > 0:
+							
 			if self.momentum > 0:
 				self.vW[str(i)] = self.momentum*self.vW[str(i)]+dw
 				dw = self.vW[str(i)]
@@ -125,7 +130,7 @@ class NN(object):
 				self.nnff(batch_x,batch_y)
 				self.nnbp()
 				self.nnapplygrads()
-				self.learningRate = self.learningRata * self.scaling_learningRate
+				self.learningRate = self.learningRate * self.scaling_learningRate
 
 	
 	def nnpredict(self,x):
