@@ -105,7 +105,8 @@ class NN(object):
 			dw = self.dW[str(i)]
 			dw = self.learningRate*dw
 			if self.jacobi_penalty > 0:
-							
+				a = (self.a[str(i)]*(1-self.a[str(i)]))**2
+				d = ((1-2*self.a[str(i)])*a*(self.W[str(i-1)]**2).sum(0)[None,:])					
 			if self.momentum > 0:
 				self.vW[str(i)] = self.momentum*self.vW[str(i)]+dw
 				dw = self.vW[str(i)]

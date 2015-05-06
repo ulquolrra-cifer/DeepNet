@@ -5,7 +5,7 @@ from active_function import *
 
 
 class NN(object): 
-	def __init__(self,architecture,activation_function='sigm',learningRate = 2,momentum = 0.5,weightPenaltyL2 = 0,sparsityparameter = 0.1,beta=0.5,inputzeroMaskedFraction=0,output = 'sigm',jacobi_penalty = 0.1,scaling_learningRate = 0.99):
+	def __init__(self,architecture,activation_function='sigm',learningRate = 2,momentum = 0.5,weightPenaltyL2 = 0,sparsityparameter = 0.1,beta=0.5,inputzeroMaskedFraction=0,output = 'sigm',jacobi_penalty = 0,scaling_learningRate = 0.99):
 		self.size=architecture
 		self.n=len(self.size)
 		self.activation_function = activation_function
@@ -108,6 +108,7 @@ class NN(object):
 		for i in range(self.n-1,0,-1):
 			dw = self.dW[str(i)]
 			db = self.db[str(i)]
+
 			if self.jacobi_penalty > 0:
 				if i==1:
 					a = (self.a[str(i+1)]*(1-self.a[str(i+1)]))**2
