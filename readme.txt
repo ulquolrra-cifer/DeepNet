@@ -5,4 +5,8 @@
 #	- DeeplearningToolBox
 #			https://github.com/rasmusbergpalm/DeepLearnToolbox
 #	- UFLDL Tutorial
-			http://ufldl.stanford.edu/tutorial/unsupervised/SparseCoding/
+#			http://ufldl.stanford.edu/tutorial/unsupervised/SparseCoding/
+#
+#	The References : https://github.com/ynd/cae.py
+#	The formula derivation of contractive Auto-Encoder:http://stats.stackexchange.com/questions/14827/how-to-calculate-derivative-of-the-contractive-auto-encoder-#regularization-term
+
