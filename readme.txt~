@@ -1,4 +1,4 @@
-#It is my experimental code of deeplearning neural networ and variants:Sda,denoising auto-encoder,sparse autoencoder,rbm,dbn,cnn and rnn
+#It is my experimental code of deeplearning neural networ and variants:Sda,denoising auto-encoder,sparse autoencoder
 #References :
 #	- DeepLearningTutorials
 #   		https://github.com/lisa-lab/DeepLearningTutorials 
