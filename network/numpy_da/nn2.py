@@ -50,9 +50,9 @@ class NN(object):
 		for i in range(2,n):
 			
 			if self.activation_function == 'sigm':
-				self.a[str(i)] = sigm(np.dot(self.a[str(i-1)],self.W[str(i-1)])+np.tile(self.b[str(i-1)],(self.a[str(1)].shape[0],1)))
+				self.a[str(i)] = sigm(np.dot(self.a[str(i-1)],self.W[str(i-1)])+np.tile(self.b[str(i-1)],(self.a[str(i-1)].shape[0],1)))
 			elif self.activation_function == 'tanh_opt':
-				self.a[str(i)] = tanh_opt(np.dot(self.a[str(i-1)],self.W[str(i-1)])+np.tile(self.b[str(i-1)],(self.a[str(1)].shape[0],1)))
+				self.a[str(i)] = tanh_opt(np.dot(self.a[str(i-1)],self.W[str(i-1)])+np.tile(self.b[str(i-1)],(self.a[str(i-1)].shape[0],1)))
 
 			if self.dropout > 0:
 				if self.testing ==1:
