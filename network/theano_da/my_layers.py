@@ -123,7 +123,7 @@ class OutputsLayer(object):
 			outputs = T.nnet.softmax(T.dot(inputs,self.w)+self.b)
 
 		elif self.activation == 'linear':		
-			outputs = T.maximun((T.dot(inputs,self.w)+self.b),0)
+			outputs = T.maximum((T.dot(inputs,self.w)+self.b),0)
 		return outputs
 
 	def cost(self,output,label):
