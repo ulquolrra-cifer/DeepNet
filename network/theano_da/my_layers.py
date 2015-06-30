@@ -122,7 +122,7 @@ class OutputsLayer(object):
 		elif self.activation == 'softmax':
 			outputs = T.nnet.softmax(T.dot(inputs,self.w)+self.b)
 
-		elif self.activation == 'liner':		
+		elif self.activation == 'linear':		
 			outputs = T.maximun((T.dot(inputs,self.w)+self.b),0)
 		return outputs
 
