@@ -29,10 +29,10 @@ def form_label(label):
         elif num_label[i]==9:
             l[i][9]=1
     return theano.shared(np.asarray(l,dtype=theano.config.floatX),borrow=True)
-def unfold(sda,nn):
+def unfold(sda,nn,dropout):
 	n=sda.n_layers
 	for i in range(n):
-		nn.layer[i].w.set_value(sda.da_layers[i].w.get_value())
+		nn.layer[i].w.set_value((sda.da_layers[i].w.get_value()*(1-dropout[i][0])))
 		nn.layer[i].b.set_value(sda.da_layers[i].b_h.get_value())
 	return nn
 def load_data(dataset):
