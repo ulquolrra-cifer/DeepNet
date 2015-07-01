@@ -77,10 +77,19 @@ class da(object):
 
 	def denoising(self,inputs,de_params):
 		return self.theano_rng.binomial(size = inputs.shape,n=1,p=1-de_params,dtype=theano.config.floatX)*inputs
-	def get_cost_updates(self,de_params,learning_rate):
-		denoising_inputs = self.denoising(self.input,de_params)
-		denoising_inputs = self.input
+    def dropout(self,hiddens,drop_params):
+        return self.theano_rng.binomial(size=hiddens.shape,n=1,p=1-de_params,dtype=theano.config.floatX)*inputs
+	def get_cost_updates(self,de_params,learning_rate,params_denoising,params_dropout=0.0):
+        if params_denoising > 0:
+		    denoising_inputs = self.denoising(self.input,params_denoising)
+        else:
+		    denoising_inputs = self.input
 		y = self.v_to_h(denoising_inputs)
+        if params_dropout > 0
+            hiddens = self.dropout(y,params_dropout)
+        else:
+            hiddens = y
+#		y = self.v_to_h(denoising_inputs)
 		z = self.h_to_v(y)
 		if self.costtype == 'meansquare':
 			error = T.mean(((z- self.input)**2).sum(1))
@@ -100,7 +109,7 @@ class da(object):
 		for param,gparam in zip(self.params,gparams):
 			weight_update = self.updates[param]
 			upd = self.mom*weight_update - learning_rate*gparam
-			self.updates[param] = upd
+			updates[weight_update] = upd
 			updates[param] = param + upd
 #		dparams = T.grad(cost,self.params)
 #		updates = [

@@ -29,7 +29,7 @@ class NN(object):
 #		self.my_params = my_params
 		self.d = {}
 #		self.d_pre = {}
-		
+		self.dropMask = {}
 		self.jacobi_penalty = jacobi_penalty
 		self.scaling_learningRate = scaling_learningRate
 #		self.e
@@ -55,10 +55,11 @@ class NN(object):
 				self.a[str(i)] = tanh_opt(np.dot(self.a[str(i-1)],self.W[str(i-1)])+np.tile(self.b[str(i-1)],(self.a[str(i-1)].shape[0],1)))
 
 			if self.dropout > 0:
+				self.dropMask[str(i)] = np.random.uniform(0,1,np.shape(self.a[str(i)]))>self.dropout
 				if self.testing ==1:
 					self.a[str(i)] = self.a[str(i)] * (1-self.dropout)
 				else:
-					self.a[str(i)] *= (np.random.uniform(0,1,np.shape(self.a[str(i)])) > self.dropout)
+					self.a[str(i)] *= self.dropMask[str(i)]
 #			if self.my_params > 0:
 #				binarys = np.random.uniform(0,1,(self.a[str(i)].shape))>self.my_params
 #				self.nums = np.sum(binarys,0)
@@ -101,12 +102,14 @@ class NN(object):
 #					d[str(i)] = np.dot(d[str(i+1)][:,1:],self.W[str(i)])*d_act
 			else:
 				term = -(self.sparsityparameter / self.P[str(i)]) + (1-self.sparsityparameter) / (1.0 - self.P[str(i)])
-				d[str(i)] = (np.dot(d[str(i+1)],self.W[str(i)].T)+self.beta*term)*d_act
+				self.d[str(i)] = (np.dot(self.d[str(i+1)],self.W[str(i)].T)+self.beta*term)*d_act
 #				term = -(self.sparsityparameter / self.P[str(i)]) + (1-self.sparsityparameter) / (1 - self.P[str(i)])
 #				if i+1 == n:
 #					d[str(i)] = (np.dot(d[str(i+1)],self.W[str(i)])+self.beta*term)*d_act
 #				else:
-#					d[str(i)] = (np.dot(d[str(i+1)][:,1:],self.W[str(i)])+self.beta*term)*d_act 
+#					d[str(i)] = (np.dot(d[str(i+1)][:,1:],self.W[str(i)])+self.beta*term)*d_act
+			if self.dropout > 0:
+				self.d[str(i)] *= self.dropMask[str(i)]  
 		for i in range(1,n,1):
 #			if i+1 == n:
 			self.dW[str(i)] = np.dot(self.a[str(i)].T,self.d[str(i+1)])/np.shape(self.d[str(i+1)])[0]

@@ -64,7 +64,7 @@ class ForwordNN(object):
 		]
 		return self.cost,updates
 
-def train(inputs,labels,n_in,n_out,learning_Rate,hidden_sizes,batch_sizes,epochs,moment=0.5,nn=None):
+def train(inputs,labels,n_in,n_out,learning_Rate,hidden_sizes,batch_sizes,epochs,moment=0.0,nn=None):
 	m = np.shape(inputs)[0]
 	n_train_batchs = m / batch_sizes
 	train_data = theano.shared(np.asarray(inputs,dtype=theano.config.floatX),borrow=True)
@@ -90,7 +90,7 @@ def train(inputs,labels,n_in,n_out,learning_Rate,hidden_sizes,batch_sizes,epochs
 	for param,gparam in zip(mynn.params,gparams):
 		weight_update = mynn.updates[param]
 		upd = moment*weight_update-learning_Rate*gparam
-		mynn.updates[param] = upd
+		updates[weight_update] = upd
 		updates[param] = param + upd
 	train_nn = theano.function([index],
 				cost,
@@ -144,14 +144,14 @@ def fine_train(nn,datasets,learning_Rate,batch_sizes,epochs):
 
 
 if __name__ == '__main__':
-	train_data,train_label = load_train('train.csv')
+	train_data,train_label = load_train('../data/train.csv')
 	y_pre=np.argmax(train_label,1)
 #	testdata = load_test('test.csv')
 #	train_data = np.random.uniform(0,1,(100,20))
 #	train_label = np.random.uniform(0,1,(100,2))
 #	train_data,train_label = load_train('train.csv')
 #	test_data = load_test('test.csv')
-	testdata = T.matrix('testdata')
+	testdata = T.matrix('../data/testdata')
 #	testdata = theano.shared(np.asarray(testdata,dtype = np.float32),borrow=True)
 	mynn = train(inputs=train_data,labels=train_label,n_in=784,n_out=10,learning_Rate=0.5,hidden_sizes=[500,500],batch_sizes=20,epochs=100)
 	train_data = theano.shared(np.asarray(train_data,dtype = theano.config.floatX),borrow=True)	
