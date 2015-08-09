@@ -6,6 +6,7 @@ import time
 from loaddata import *
 from logistic_sgd import load_data
 import pandas as pd
+from collections import OrderedDict
 def LeNet(learn_rate=0.01,batch_sizes=100,epochs=10,moment=0.0
 ,nkerns=[20,50]):
   #  datasets = load_data('mnist.pkl.gz')
@@ -39,7 +40,7 @@ def LeNet(learn_rate=0.01,batch_sizes=100,epochs=10,moment=0.0
     for param in params:
         gparam = T.grad(cost,param)
         gparams.append(gparam)
-    updates = {}
+    updates = OrderedDict()
     for param,gparam in zip(params,gparams):
         weight_update = last_updates[param]
         upd = moment * weight_update - learn_rate * gparam

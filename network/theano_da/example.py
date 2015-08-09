@@ -9,6 +9,7 @@ import theano
 import theano.tensor as T
 from my_layers import Hiddenlayer,OutputsLayer,form_label,unfold
 import time
+from collections import OrderedDict
 if __name__ == "__main__":
     traindata,trainlabel = load_train('../data/train.csv')
     y_pre=np.argmax(trainlabel,1)
@@ -53,11 +54,11 @@ if __name__ == "__main__":
     for param in mynn.params:
         gparam=T.grad(cost,param)
         gparams.append(gparam)
-    updates = {}
+    updates = OrderedDict()
     for param,gparam in zip(mynn.params,gparams):
         weight_update = mynn.updates[param]
         upd = moment*weight_update-learning_rate*gparam
-        mynn.updates[param] = upd
+        updates[param] = upd
         updates[param] = param + upd
 #	cost,update = mynn.get_cost_update(x,y,learning_rate)
     train_nn = theano.function([index],
