@@ -14,10 +14,10 @@ if __name__ == '__main__':
 #	x=pca.fit(test_data).transform(test_data)
 #	train_data = train_data 
 #	test_data = test_data / 255.0
-	mysda=sda.Sda([784,150,10],activation_function='sigm',learningRate = 2,momentum = 0.5,weightPenaltyL2 = 0,sparsityparameter = 0,beta=0.5,inputzeroMaskedFraction=0,output = 'sigm',jacobi_penalty = 0,scaling_learningRate = 0.99,dropout = 0.3)
+	mysda=sda.Sda([784,150,10],activation_function='sigm',learningRate = 2,momentum = 0.5,weightPenaltyL2 = 0,sparsityparameter = 0,beta=0.5,inputzeroMaskedFraction=0,output = 'sigm',jacobi_penalty = 0.2,scaling_learningRate = 0.99,dropout = 0.3)
 	mysda.train(train_data,50,1)
 #	mysda.train(test_data,50,1)
-	mynn = nn2.NN([784,150,10],activation_function='sigm',learningRate = 1,momentum = 0.5,weightPenaltyL2 = 0,sparsityparameter = 0,beta=0.5,inputzeroMaskedFraction=0,output = 'softmax',jacobi_penalty = 0,scaling_learningRate = 0.99,dropout = 0)
+	mynn = nn2.NN([784,150,10],activation_function='sigm',learningRate = 1,momentum = 0.5,weightPenaltyL2 = 0,sparsityparameter = 0,beta=0.5,inputzeroMaskedFraction=0,output = 'softmax',jacobi_penalty = 0.2,scaling_learningRate = 0.99,dropout = 0)
 	mynn.W['1'] = mysda.da['1'].W['1']
 	mynn.b['1'] = mysda.da['1'].b['1']
 	mynn.W['2'] = mysda.da['2'].W['1']

@@ -15,9 +15,9 @@ if __name__ == "__main__":
     testdata = load_test('../data/test.csv')
     learning_rate = 0.5
     batch_sizes = 20
-    pre_epochs = 10
-    fine_epochs = 50
-    drop = ([0.5,0.5],[0.5,0.5])
+    pre_epochs = 2
+    fine_epochs = 5
+#    drop = ([0.5,0.5],[0.5,0.5])
     moment = 0.5
     x = T.matrix('x')
     y = T.matrix('y')
@@ -28,7 +28,7 @@ if __name__ == "__main__":
     trainlabel = theano.shared(np.asarray(trainlabel,dtype=theano.config.floatX),borrow=True)
     testdata = theano.shared(np.asarray(testdata,dtype=theano.config.floatX),borrow=True)
     batch_num = traindata.get_value(borrow=True).shape[0] / batch_sizes
-    mysda = sda1.Sda(n_in=784,n_out=10,hidden_sizes=[500,500],np_rng=numpy_rng,dropout=drop)
+    mysda = sda1.Sda(n_in=784,n_out=10,hidden_sizes=[500,500],np_rng=numpy_rng)
 #	pre_w1 = mysda.params[0].get_value()
 #	pre_b1 = mysda.params[1].get_value()
     mynn=ForwordNN(inputs=x,label=y,n_in=784,n_out=10,hiddensizes=[500,500],rng=numpy_rng,activation='sigmoid',output_activation='softmax')
@@ -46,7 +46,7 @@ if __name__ == "__main__":
             print '%d layers pretraining, %d/%d taken %f seconds and the mean cost is %f' % (i,num_epochs,pre_epochs,(t2-t1),np.mean(c))
 
     print 'finetune trainging the model!'
-    mynn=unfold(mysda,mynn,drop)
+    mynn=unfold(mysda,mynn)
     min_batch_cost = []
     cost = mynn.outlayer.cost(mynn.predict_outputs(x),y)+mynn.L2_reg*mynn.L2+mynn.L1_reg*mynn.L1
     gparams =[]

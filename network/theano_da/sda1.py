@@ -7,18 +7,13 @@ import time
 from my_layers import load_data
 from nn import ForwordNN
 class Sda(object):
-    def __init__(self,n_in,n_out,hidden_sizes,dropout,np_rng=None,theano_rng=None):
+    def __init__(self,n_in,n_out,hidden_sizes,np_rng=None,theano_rng=None):
         self.da_layers = []
         self.hidden_layers = []
         self.n_layers = len(hidden_sizes)
         self.input = T.matrix('input')
         self.label = T.matrix('label')
         self.params = []
-        self.dropout = dropout
-        if np.sum(dropout) == 0:
-            self.drop = False
-        else:
-            self.drop = True
         for i in range(len(hidden_sizes)):
             if i == 0:
                 inputs_size = n_in
@@ -48,7 +43,7 @@ class Sda(object):
         i=0
         pre = []
         for DA in self.da_layers:
-            error,update = DA.get_cost_updates(learning_rate,denoising[i],self.dropout[i],drop=self.drop)
+            error,update = DA.get_cost_updates(learning_rate,denoising[i])
             i += 1
             train_da = theano.function(inputs=[index],
                                         outputs = error,

@@ -102,7 +102,7 @@ def train(inputs,labels,n_in,n_out,learning_Rate,hidden_sizes,batch_sizes,epochs
         upd = moment*weight_update-learning_Rate*gparam
         updates[weight_update] = upd
         updates[param] = param + upd
-        train_nn = theano.function([index],
+    train_nn = theano.function([index],
                 cost,
                 updates = updates,
                 givens = {

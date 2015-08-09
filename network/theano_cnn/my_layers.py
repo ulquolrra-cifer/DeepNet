@@ -1,8 +1,11 @@
+from __future__ import division
 import numpy as np
 import theano
 import theano.tensor as T
 import gzip
 import cPickle
+from theano.tensor.signal import downsample
+from theano.tensor.nnet import conv
 def form_label(label):
     num_label=label.get_value()
     m=label.get_value(borrow=True).shape[0]
@@ -32,7 +35,7 @@ def form_label(label):
 def unfold(sda,nn):
 	n=sda.n_layers
 	for i in range(n):
-		nn.layer[i].w.set_value((sda.da_layers[i].w.get_value()))
+		nn.layer[i].w.set_value(sda.da_layers[i].w.get_value())
 		nn.layer[i].b.set_value(sda.da_layers[i].b_h.get_value())
 	return nn
 def load_data(dataset):
@@ -122,8 +125,8 @@ class OutputsLayer(object):
 		elif self.activation == 'softmax':
 			outputs = T.nnet.softmax(T.dot(inputs,self.w)+self.b)
 
-		elif self.activation == 'linear':		
-			outputs = T.maximum((T.dot(inputs,self.w)+self.b),0)
+		elif self.activation == 'liner':		
+			outputs = T.maximun((T.dot(inputs,self.w)+self.b),0)
 		return outputs
 
 	def cost(self,output,label):
@@ -141,4 +144,37 @@ class OutputsLayer(object):
 #-T.log(T.sum(self.outputs*self.targets))
 #		elif self.activation == 'softmax':
 #			return T.mean((T.nnet.binary_crossentropy(self.output, label)).mean(axis=1)) 
- 
+
+class ConvPoolLayer(object):
+    def __init__(self,inputs,filter_shape,image_shape,rng=None,poolsize=(2,2)):
+        if rng == None:
+            self.rng = np.random.RandomState(23455)
+        else:
+            self.rng = rng
+        self.inputs = inputs
+        self.filter_shape = filter_shape
+        self.image_shape = image_shape
+        self.poolsize = poolsize
+        fan_in = np.prod(filter_shape[1:])
+        fan_out = filter_shape[0]*np.prod(filter_shape[2:])/np.prod(poolsize)
+        bound = np.sqrt(6./(fan_in+fan_out))
+        w = np.asarray(self.rng.uniform(
+                                    low=-bound,
+                                    high=bound,
+                                    size=filter_shape
+                                    ),
+                        dtype=theano.config.floatX)
+        self.w = theano.shared(w,borrow=True)
+        b = np.zeros((filter_shape[0],),dtype=theano.config.floatX)
+        self.b = theano.shared(b,borrow=True)
+        self.params = [self.w,self.b]
+    def get_outputs(self):
+        self.conv_out = conv.conv2d(input=self.inputs,
+                                    filters=self.w,
+                                    filter_shape=self.filter_shape,
+                                    image_shape=self.image_shape)
+        self.pooled_out = downsample.max_pool_2d(input=self.conv_out,
+                                                 ds=self.poolsize,
+                                                 ignore_border=True)
+        self.outputs = T.tanh(self.pooled_out+self.b.dimshuffle('x',0,'x','x'))
+        return self.outputs

@@ -159,8 +159,6 @@ class NN(object):
 			kk = np.array(kk)
 			t1=time.time()
 			for l in range(int(numbatches)):
-			
-				
 				batch_x = x[kk[(l)*batchsize : ((l+1) * batchsize)],:]
 				if self.inputzeroMaskedFraction > 0:
 					batch_x = batch_x * (np.random.uniform(0,1,(np.shape(batch_x))) > self.inputzeroMaskedFraction)

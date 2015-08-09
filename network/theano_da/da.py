@@ -77,15 +77,10 @@ class da(object):
 
     def denoising(self,inputs,de_params):
         return self.theano_rng.binomial(size = inputs.shape,n=1,p=1-de_params,dtype=theano.config.floatX)*inputs
-    def dropout(self,hiddens,drop_params):
-        return T.cast(self.theano_rng.binomial(size=hiddens.shape,n=1,p=1-drop_params),theano.config.floatX)*hiddens
-    def get_cost_updates(self,learning_rate,params_denoising=0.3,params_dropout=[0.0,0.0],drop=False):
-        if drop == True:
-            drop_inputs = self.dropout(self.input,params_dropout[0])
-            hiddens = self.v_to_h(drop_inputs)
-            drop_hiddens = self.dropout(hiddens,params_dropout[1])
-            z = self.h_to_v(drop_hiddens)
-        elif params_denoising > 0:
+#    def dropout(self,hiddens,drop_params):
+#        return T.cast(self.theano_rng.binomial(size=hiddens.shape,n=1,p=1-drop_params),theano.config.floatX)*hiddens
+    def get_cost_updates(self,learning_rate,params_denoising=0.3):
+        if params_denoising > 0:
             denoising_inputs = self.denoising(self.input,params_denoising)
             y = self.v_to_h(denoising_inputs)
             z = self.h_to_v(y)
