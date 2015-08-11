@@ -117,7 +117,7 @@ class NN(object):
         offsets = 0
         assert(n_w==n_b)
         for i,j in zip(w,b):
-            print i
+           # print i
             size_w_x,size_w_y = w[i].shape
             size_b = b[j].shape[1]
             vectors[offsets:(offsets+(size_w_x*size_w_y))] = self.vec(w[i])
@@ -137,24 +137,37 @@ class NN(object):
             b[i] = vectors[offsets:(offsets+size_b)].reshape((1,n))
             offsets += size_b
         return w,b
-    def conjugate_gradient(self,init_delta,grad,iters=100):
+    def conjugate_gradient(self,init_delta,grad,iters=1):
+        vals = {}
+        store_iter = 5
+        store_step = 1.3
         base_grad = -grad
         delta = init_delta
         deltas = {}
         residual = base_grad-self.compute_Gv(init_delta,self.damping)
         direction = residual.copy()
         res_norm = np.dot(residual,residual)
+        temp_iters = 0
         for i in range(iters):
             G_dir = self.compute_Gv(direction,self.damping)
             alpha = res_norm / np.dot(direction,G_dir)
             delta += alpha*direction
             residual -= alpha * G_dir
             new_res_norm = np.dot(residual,residual)
+  #          if new_res_norm < 1e-20:
+   #             break
             beta = new_res_norm / res_norm
             direction = direction*beta + residual
             res_norm = new_res_norm
-            deltas[i] = delta
-        return deltas
+            if i == store_iter:
+                deltas[i] = delta
+                temp_iters = i
+                store_iter = int(store_iter * store_step)
+            vals[i] = -0.5 * np.dot(residual + base_grad,delta)
+            k = max(int(0.1 * i),10)
+            if (i>k and vals[i] < 0 and (vals[i]-vals[i-k])/vals[i] < k * 0.0005):
+                break
+        return temp_iters,deltas
     def compute_Gv(self,v,damping=0):
         Gv = np.zeros((self.psize,))
         Ra = {}
@@ -243,17 +256,23 @@ class NN(object):
             db = self.learningRate*db
             self.W[i] = self.W[i]-dw
             self.b[i] = self.b[i]-db
+    def predict(self,testdata):
+        self.nnff(testdata,np.zeros((testdata.shape[0],10)))
+        predicts = self.a[self.n]
+        
+        return predicts
 	
-    def run_hf(self,inputs,targets,iters=250,init_damping=1.0,epochs=1000,batch_size=None,test=None,):
+    def run_hf(self,inputs,targets,iters=100,init_damping=1.0,epochs=20,batch_size=None):
         init_delta = np.zeros((self.psize,))
         self.damping = init_damping
 
         for i in range(epochs):
+            t1 = time.time()
             if batch_size is None:
                 self.inputs = inputs
                 self.targets = targets
             else:
-                indices = np.random.choice(np.arange(len(inputs)),batch_size,False)
+                indices = np.random.choice(np.arange(len(inputs)),size=batch_size, replace=False)
                 self.inputs = inputs[indices]
                 self.targets = targets[indices]
             self.nnff(self.inputs,self.targets)
@@ -261,12 +280,14 @@ class NN(object):
             error = self.L
             grad = self.pack(self.dW,self.db)
   #          print "ready to CG"
-            deltas = self.conjugate_gradient(init_delta*0.95,grad,iters)
-            init_delta = deltas[iters-1]
+            temp_iters,deltas = self.conjugate_gradient(init_delta*0.95,grad,iters)
+            init_delta = deltas[temp_iters]
             new_err = np.inf
   #          print 'CG backtracking'
             #CG backtracking
-            for j in range(iters-1,-1,-1):
+            keys = deltas.keys()
+            keys = sorted(keys,reverse=True)
+            for j in keys:
                 temp_w,temp_b = self.compute_weights(deltas[j])
                 pre_err = self.get_error(temp_w,temp_b)
                 if pre_err > new_err:
@@ -282,7 +303,7 @@ class NN(object):
             elif p > 0.75:
                 self.damping *= 0.66
             #learn search
-            print 'learn_rate search'
+#            print 'learn_rate search'
             learn_rate = 1.0
             min_improv = min(1e-2 * np.dot(grad,delta),0)
             for _ in range(50):
@@ -296,6 +317,8 @@ class NN(object):
                 new_err = error
             dW,db = self.unpack(learn_rate * delta)
             self.update_weights(dW,db)
+            t2 = time.time()
+            print "%d/%d takes %f seconds the error is %f" % (i,epochs,(t2-t1),error)
 
 
 

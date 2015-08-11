@@ -85,8 +85,10 @@ class RNN(object):
             self.predicts = T.nnet.softmax(self.y_pred)
         elif self.output_type == 'sigmoid':
             self.predicts = T.nnet.sigmoid(self.y_pred)
-        else:
+        elif self.output_type == 'real':
             self.predicts = self.y_pred
+        else:
+            raise NotImplementedError
 
 
         if self.error_type == 'mse':

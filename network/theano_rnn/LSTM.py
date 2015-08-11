@@ -1,3 +1,4 @@
+
 import theano
 import theano.tensor as T
 import numpy as np
@@ -67,8 +68,10 @@ class LSTM(object):
             self.predicts = T.nnet.softmax(self.y_pred)
         elif self.output_type == 'sigmoid':
             self.predicts = T.nnet.sigmoid(self.y_pred)
-        else:
+        elif self.output_type == 'real':
             self.predicts = self.y_pred
+        else:
+            raise NotImplementedError 
 
         if self.error_type == 'mse':
             self.cost = T.mean((self.predicts - self.y) ** 2)
@@ -77,7 +80,7 @@ class LSTM(object):
         elif self.error_type == 'negativeloglihood':
             self.cost = -T.mean(T.log(self.predicts)[T.arange(y.shape[0]), y])
         else:
-                raise NotImplementedError 
+            raise NotImplementedError 
     def activation_function(self,x_t,h_tm1,c_tm1):
         it = T.nnet.sigmoid(T.dot(self.w,x_t)+T.dot(self.u,h_tm1)+self.b)
         ft = T.nnet.sigmoid(T.dot(self.wf,x_t)+T.dot(self.uf,h_tm1)+self.b_f)
