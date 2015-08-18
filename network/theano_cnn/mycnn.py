@@ -8,14 +8,24 @@ from logistic_sgd import load_data
 import pandas as pd
 from collections import OrderedDict
 def LeNet(learn_rate=0.01,batch_sizes=100,epochs=10,moment=0.0
-,nkerns=[20,50]):
+,nkerns=[20,50],cv=5):
   #  datasets = load_data('mnist.pkl.gz')
   #  traindata,trainlabel = datasets[0]
-    traindata,trainlabel = load_train('../data/train.csv')
+    all_traindata,all_trainlabel = load_train('../data/train.csv')
+  #  print "all traindata's num is %d" % (all_traindata.shape[0])
+    if cv > 0 :
+        sizes = all_traindata.shape[0]/cv
+        traindata = all_traindata[0:(cv-1)*sizes,:]
+        trainlabel = all_trainlabel[0:(cv-1)*sizes,:]
+        validdata = all_traindata[(cv-1)*sizes:cv*sizes,:]
+        validlabel = all_trainlabel[(cv-1)*sizes:cv*sizes,:]
+   # print "traindata's num is %d,validdata's num is %d" % (traindata.shape[0],validdata.shape[0])
   #  train_m = traindata.shape[0]
   #  traindata = traindata.reshape((train_m,1,28,28))
     traindata = theano.shared(np.asarray(traindata,theano.config.floatX),borrow=True)
     trainlabel = theano.shared(np.asarray(trainlabel,theano.config.floatX),borrow=True)
+    validdata = theano.shared(np.asarray(validdata,theano.config.floatX),borrow=True)
+    validlabel = theano.shared(np.asarray(validlabel,theano.config.floatX),borrow=True)
     testdata = load_test('../data/test.csv')
 
     testdata = theano.shared(np.asarray(testdata,theano.config.floatX),borrow=True)
@@ -47,6 +57,9 @@ def LeNet(learn_rate=0.01,batch_sizes=100,epochs=10,moment=0.0
         updates[weight_update] = upd
         updates[param] = param + upd
     batch_num = traindata.get_value(borrow=True).shape[0]/batch_sizes
+    batch_valid_num = validdata.get_value(borrow=True).shape[0]/batch_sizes
+    #print "traindata's num is %d,validdata's num is %d,vathc_sizes is %d" % (batch_num,batch_valid_num,batch_sizes)
+    #print "batch_valid_num is %d" % (batch_valid_num)
     train_model = theano.function([index],
                                     outputs=cost,
                                     updates=updates,
@@ -55,19 +68,49 @@ def LeNet(learn_rate=0.01,batch_sizes=100,epochs=10,moment=0.0
                                                y:trainlabel[index*batch_sizes:(index+1)*batch_sizes]
                                            }
                                   )
+    valid_model = theano.function([index],
+                                    outputs=cost,
+                                    givens={
+                                                x:validdata[index*batch_sizes:(index+1)*batch_sizes],
+                                                y:validlabel[index*batch_sizes:(index+1)*batch_sizes]
+                                            }
+                                  )
     predict_mode = theano.function([index],
                                     outputs=outputs,
                                     givens={
                                                 x:testdata[index*batch_sizes:(index+1)*batch_sizes]
                                            }
                                    )
-    for epoch in xrange(epochs):
+    best_valid_cost = np.inf
+    patience = 5000
+    patience_increase = 2
+    improvement_threshold = 0.995
+    epoch = 0
+    done_loop = False
+    valid_frequence = min(batch_num,patience/2)
+    while (epoch < epochs) and (done_loop is False):
+        epoch += 1
         t1 = time.time()
         mean_cost = []
+        valid_cost = []
         for batch in xrange(int(batch_num)):
             mean_cost.append(train_model(batch))
+            iter = (epoch - 1) * batch_num + batch
+            if (iter + 1) % valid_frequence == 0 :
+
+                for batch_val in xrange(int(batch_valid_num)):
+                    valid_cost.append(valid_model(batch_val))
+                mean_valid_cost = np.mean(valid_cost)
+                if mean_valid_cost < best_valid_cost:
+                    if mean_valid_cost < best_valid_cost * improvement_threshold:
+                        patience = max(patience,iter*patience_increase)
+                    best_valid_cost = mean_valid_cost
+            if patience <= iter:
+                done_loop = True
+                break
+
         t2 = time.time()
-        print '%d/%d,takes %f seconds,the mean cost is %f' % (epoch,epochs,(t2-t1),np.mean(mean_cost))
+        print '%d/%d,takes %f seconds,the traindata mean cost is %f,the bestvaliddata mean cost is %f' % (epoch,epochs,(t2-t1),np.mean(mean_cost),best_valid_cost)
     batch_test_num = testdata.get_value().shape[0]/batch_sizes
     predict = []       
     print 'predict the data!'
