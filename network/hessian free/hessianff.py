@@ -1,4 +1,4 @@
-#use w and b to training the network 
+
 import numpy as np
 import time
 def sigm(x):
