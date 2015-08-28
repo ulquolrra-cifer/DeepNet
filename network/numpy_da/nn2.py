@@ -188,9 +188,9 @@ if __name__ == "__main__":
 		y = np.random.uniform(0,1,(100,2))
 		mynn = NN([20,15,10,2])
 		mynn.nnff(x,y)
-		mynn.bp()
+		mynn.nnbp()
 		mynn.nnapplygrads(x)
-		label=mynn.predict(x)
+		label=mynn.nnpredict(x)
 		print label
 
 
