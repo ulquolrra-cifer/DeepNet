@@ -1,30 +1,34 @@
 import numpy as np
 import pandas as pd
 from pandas import DataFrame
+#def form_label(labels):
+#	l=np.zeros((np.shape(labels)[0],10))
+#	for i in range(np.shape(labels)[0]):
+#		if labels[i]==0:
+#			l[i,0]=1
+#		elif labels[i]==1:
+#			l[i,1]=1
+#		elif labels[i]==2:
+#			l[i,2]=1
+#		elif labels[i]==3:
+#			l[i,3]=1
+#		elif labels[i]==4:
+#			l[i,4]=1
+#		elif labels[i]==5:
+#			l[i,5]=1
+#		elif labels[i]==6:
+#			l[i,6]=1
+#		elif labels[i]==7:
+#			l[i,7]=1
+#		elif labels[i]==8:
+#			l[i,8]=1
+#		elif labels[i]==9:
+#			l[i,9]=1
+#	return l
 def form_label(labels):
-	l=np.zeros((np.shape(labels)[0],10))
-	for i in range(np.shape(labels)[0]):
-		if labels[i]==0:
-			l[i,0]=1
-		elif labels[i]==1:
-			l[i,1]=1
-		elif labels[i]==2:
-			l[i,2]=1
-		elif labels[i]==3:
-			l[i,3]=1
-		elif labels[i]==4:
-			l[i,4]=1
-		elif labels[i]==5:
-			l[i,5]=1
-		elif labels[i]==6:
-			l[i,6]=1
-		elif labels[i]==7:
-			l[i,7]=1
-		elif labels[i]==8:
-			l[i,8]=1
-		elif labels[i]==9:
-			l[i,9]=1
-	return l
+    results = np.zeros((labels.shape[0],10))
+    results[xrange(labels.shape[0]),labels] =1.
+    return results
 def load_train(filename):
 	train = pd.read_csv(filename,sep=',')
 	m,n = train.shape
