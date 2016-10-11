@@ -1,1 +1,1 @@
-"""It's codes of my study"""
+"""It's codes for my study"""
